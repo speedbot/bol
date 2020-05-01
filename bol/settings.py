@@ -80,3 +80,81 @@ USE_L10N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
+
+def dedupe_celery_exceptions(record):
+    return record.getMessage().startswith('Task failure')
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'root': {
+        'level': 'WARNING',
+        'handlers': ['sentry'],
+    },
+    'formatters': {
+        'verbose': {
+            'format':
+                '%(levelname)s %(asctime)s %(module)s '
+                '%(process)d %(thread)d %(message)s',
+        },
+    },
+    'filters': {
+        'dedupe_celery_exceptions': {
+            '()': 'django.utils.log.CallbackFilter',
+            'callback': dedupe_celery_exceptions,
+        },
+    },
+    'handlers': {
+        'sentry': {
+            'level': 'WARNING',
+            'class':
+                'raven.contrib.django.raven_compat.handlers.SentryHandler',
+            'filters': ['dedupe_celery_exceptions'],
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'null': {
+            'level': 'DEBUG',
+            'class': 'logging.NullHandler',
+        },
+    },
+    'loggers': {
+        'django.db.backends': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'celery': {
+            'level': 'WARNING',
+            'handlers': ['sentry'],
+            'propagate': False,
+        },
+        'task_exceptions': {
+            'level': 'WARNING',
+            'handlers': ['task_sentry'],
+            'propagate': False,
+        },
+        'misc_exceptions': {
+            'level': 'WARNING',
+            'handlers': ['misc_sentry'],
+            'propagate': False,
+        },
+        'django.security.DisallowedHost': {
+            'handlers': ['null'],
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['sentry'],
+            'propagate': False,
+        },
+        'django.request': {
+            'level': 'WARNING',
+            'handlers': ['sentry'],
+            'propagate': False,
+        },
+    },
+}
