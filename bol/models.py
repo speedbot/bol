@@ -64,7 +64,7 @@ class Shipment(TimeStampMixin, models.Model):
     shipmentId = models.IntegerField(null=False, db_index=True)
     shipmentDate = models.DateTimeField(null=False)
     pickUpPoint = models.BooleanField(default=True)
-    shipmentItems = models.ForeignKey(ShipmentItem, on_delete=models.CASCADE)
+    shipmentItems = models.ManyToManyField(ShipmentItem, related_name='items')
     transport = models.ForeignKey(Transport, on_delete=models.CASCADE)
     customerDetails  = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
