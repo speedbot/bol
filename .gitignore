@@ -1,0 +1,11 @@
+# Pycharm Config
+.idea/
+
+# Local Sqlite Database
+db.sqlite3
+
+# Virtual environment files
+venv/
+
+# Pycache Cache files
+__pycache__
