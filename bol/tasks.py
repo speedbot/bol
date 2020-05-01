@@ -1,9 +1,9 @@
+from billiard.exceptions import SoftTimeLimitExceeded
+from celery.schedules import crontab
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError, OperationalError
 
-from celery.exceptions import SoftTimeLimitExceeded
-from celery.schedules import crontab
 from celery.task import PeriodicTask as CeleryPeriodicTask, Task as CeleryTask
 
 from .utils import get_task_logger

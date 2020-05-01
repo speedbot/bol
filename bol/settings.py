@@ -15,6 +15,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+     'bol',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -81,6 +83,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+
 def dedupe_celery_exceptions(record):
     return record.getMessage().startswith('Task failure')
 
@@ -90,7 +93,7 @@ LOGGING = {
     'disable_existing_loggers': True,
     'root': {
         'level': 'WARNING',
-        'handlers': ['sentry'],
+        'handlers': ['console'],
     },
     'formatters': {
         'verbose': {
@@ -106,12 +109,6 @@ LOGGING = {
         },
     },
     'handlers': {
-        'sentry': {
-            'level': 'WARNING',
-            'class':
-                'raven.contrib.django.raven_compat.handlers.SentryHandler',
-            'filters': ['dedupe_celery_exceptions'],
-        },
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
@@ -130,17 +127,17 @@ LOGGING = {
         },
         'celery': {
             'level': 'WARNING',
-            'handlers': ['sentry'],
+            'handlers': ['console'],
             'propagate': False,
         },
         'task_exceptions': {
             'level': 'WARNING',
-            'handlers': ['task_sentry'],
+            'handlers': ['console'],
             'propagate': False,
         },
         'misc_exceptions': {
             'level': 'WARNING',
-            'handlers': ['misc_sentry'],
+            'handlers': ['console'],
             'propagate': False,
         },
         'django.security.DisallowedHost': {
@@ -148,13 +145,16 @@ LOGGING = {
             'propagate': False,
         },
         'django.security': {
-            'handlers': ['sentry'],
+            'handlers': ['console'],
             'propagate': False,
         },
         'django.request': {
             'level': 'WARNING',
-            'handlers': ['sentry'],
+            'handlers': ['console'],
             'propagate': False,
         },
     },
 }
+
+## Celery Config
+CELERY_BROKER_URL = os.environ.get('BROKER_URL', '')
