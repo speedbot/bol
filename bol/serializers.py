@@ -1,5 +1,5 @@
 from rest_framework.serializers import ModelSerializer
-from bol.models import Client, ShipmentItem , Transport , Customer ,Shipment
+from bol.models import Client, ShipmentItem, Transport, Customer, Shipment
 
 
 class ClientSerializer(ModelSerializer):

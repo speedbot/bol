@@ -1,4 +1,3 @@
-import ratelimit
 from billiard.exceptions import SoftTimeLimitExceeded
 from celery.schedules import crontab
 from django.apps import apps
@@ -90,7 +89,9 @@ class CreateShipmentData(Task):
         if 'transport' in data:
             transport_data = data.pop('transport')
             if Transport.objects.filter(transportId=transport_data['transportId']):
-                Transport.objects.filter(transportId=transport_data['transportId']).update(**transport_data)
+                Transport.objects.filter(
+                    transportId=transport_data['transportId'],
+                ).update(**transport_data)
             else:
                 transport = Transport.objects.create(**transport_data)
                 kwargs['transport'] = transport

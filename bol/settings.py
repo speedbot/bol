@@ -15,7 +15,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-     'bol',
+    'bol',
     'django_celery_beat',
     'rest_framework',
 ]
@@ -157,5 +157,5 @@ LOGGING = {
     },
 }
 
-## Celery Config
+# Celery Config
 CELERY_BROKER_URL = os.environ.get('BROKER_URL', '')

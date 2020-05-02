@@ -1,5 +1,6 @@
 import logging
-from bol.models import Shipment, ShipmentItem,Transport,Customer
+from bol.models import Shipment, ShipmentItem, Transport, Customer
+
 
 def get_task_logger():
     return logging.getLogger('task_exceptions')

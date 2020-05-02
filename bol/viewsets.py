@@ -1,7 +1,12 @@
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from bol.models import Client, ShipmentItem , Transport , Customer ,Shipment
-from bol.serializers import ClientSerializer, TransportSerializer, CustomerSerializer, ShipmentItemSerializer, ShipmentSerializer
+from bol.models import Client, ShipmentItem, Transport, Customer, Shipment
+from bol.serializers import \
+    ClientSerializer, \
+    TransportSerializer, \
+    CustomerSerializer, \
+    ShipmentItemSerializer, \
+    ShipmentSerializer
 
 
 class ClientViewSet(ModelViewSet):

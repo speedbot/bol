@@ -51,4 +51,3 @@ class APIHandler:
             return json.loads(response.content.decode())
         else:
             return None
-
