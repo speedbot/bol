@@ -83,7 +83,7 @@ class CreateShipmentData(Task):
         try:
             data = get_api_handler().get_shipment(shipmentId)
         except RateLimitException:
-            self.retry(countdown=30)
+            self.retry(countdown=60)
         if data is None:
             return
         kwargs = data
@@ -114,7 +114,7 @@ class TaskGetAllShipments(Task):
         try:
             shipments = get_api_handler().get_all_shipments()
         except RateLimitException:
-            self.retry(countdown=30)
+            self.retry(countdown=60)
         if shipments is None:
             return
         for id in list(map(lambda x: x['shipmentId'], shipments['shipments'])):
