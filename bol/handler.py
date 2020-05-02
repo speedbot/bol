@@ -1,5 +1,8 @@
 import json
 import requests
+
+from ratelimit import limits
+
 from .constants import BOL_LOGIN_URL, BOL_SHIPMENT_URL
 
 
@@ -27,16 +30,25 @@ class APIHandler:
         header = 'Bearer {}'.format(self.get_access_token())
         return {'Authorization': header, 'Accept': 'application/vnd.retailer.v3+json'}
 
+    @limits(calls=7, period=60)
     def get_all_shipments(self):
         response = requests.get(
             BOL_SHIPMENT_URL,
             headers=self.get_headers(),
         )
-        return json.loads(response.content.decode())
+        if response.status_code == 200:
+            return json.loads(response.content.decode())
+        else:
+            return None
 
+    @limits(calls=14, period=60)
     def get_shipment(self, shipmentId):
         response = requests.get(
             '{}{}/'.format(BOL_SHIPMENT_URL, shipmentId),
             headers=self.get_headers(),
         )
-        return json.loads(response.content.decode())
+        if response.status_code == 200:
+            return json.loads(response.content.decode())
+        else:
+            return None
+
