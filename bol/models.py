@@ -14,7 +14,7 @@ class TimeStampMixin(models.Model):
 
 class Client(TimeStampMixin, models.Model):
     name = models.CharField(max_length=255, null=False)
-    client_id = models.CharField(max_length=255, null=False)
+    client_id = models.CharField(max_length=255,unique=True, null=False)
     client_secret = models.CharField(max_length=255, null=False)
     expiry_date = models.DateTimeField(default=None)
     auth_token = models.CharField(max_length=255, default='')
@@ -51,7 +51,7 @@ class ShipmentItem(TimeStampMixin, models.Model):
 
 
 class Transport(TimeStampMixin, models.Model):
-    transportId = models.IntegerField(null=False, db_index=True)
+    transportId = models.IntegerField(unique=True, null=False, db_index=True)
     transporterCode = models.CharField(max_length=255, null=False)
     trackAndTrace = models.CharField(max_length=255, null=False)
 
@@ -69,7 +69,7 @@ class Customer(TimeStampMixin, models.Model):
 
 
 class Shipment(TimeStampMixin, models.Model):
-    shipmentId = models.IntegerField(null=False, db_index=True)
+    shipmentId = models.IntegerField(unique=True, null=False, db_index=True)
     shipmentDate = models.DateTimeField(null=False)
     pickUpPoint = models.BooleanField(default=True)
     shipmentItems = models.ManyToManyField(ShipmentItem, related_name='items')

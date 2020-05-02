@@ -6,7 +6,7 @@ from django.db import DatabaseError, OperationalError
 
 from celery.task import PeriodicTask as CeleryPeriodicTask, Task as CeleryTask
 
-from bol.models import Shipment, ShipmentItem
+from bol.utils import get_api_handler
 
 from .utils import get_task_logger
 
@@ -77,15 +77,17 @@ class PeriodicTask(TaskBase, CeleryPeriodicTask):
 
 class CreateShipmentData(Task):
     def _run(self, shipmentId, *args, **kwargs):
-        from bol.models import Client, Transport, Customer
-        from bol.handler import APIHandler
-        client = Client.objects.first()
-        handler = APIHandler(client)
-        data = handler.get_shipment(shipmentId)
+        from bol.models import Transport, Customer, Shipment, ShipmentItem
+
+        data = get_api_handler().get_shipment(shipmentId)
         kwargs = data
         if 'transport' in data:
-            transport = Transport.objects.create(**data.pop('transport'))
-            kwargs['transport'] = transport
+            transport_data = data.pop('transport')
+            if Transport.objects.filter(transportId=transport_data['transportId']):
+                Transport.objects.filter(transportId=transport_data['transportId']).update(**transport_data)
+            else:
+                transport = Transport.objects.create(**transport_data)
+                kwargs['transport'] = transport
         if 'customerDetails' in data:
             customer = Customer.objects.create(**data.pop('customerDetails'))
             kwargs['customerDetails'] = customer
@@ -93,19 +95,17 @@ class CreateShipmentData(Task):
         list = []
         for shipment in shipmentitems:
             list.append(ShipmentItem.objects.create(**shipment))
-        obj = Shipment.objects.create(**kwargs)
-        for item in list:
-            obj.shipmentItems.add(item)
+        if Shipment.objects.filter(shipmentId=kwargs['shipmentId']):
+            Shipment.objects.filter(shipmentId=kwargs['shipmentId']).update(**kwargs)
+        else:
+            obj = Shipment.objects.create(**kwargs)
+            for item in list:
+                obj.shipmentItems.add(item)
 
 
 class TaskGetAllShipments(Task):
     def _run(self, *args, **kwargs):
-        from bol.models import Client
-        from bol.handler import APIHandler
-        handler = APIHandler(client=Client.objects.first())
-        shipments = handler.get_all_shipments()
-        for id in list(map(lambda x:x['shipmentId'], shipments['shipments'])):
-            shipment = Shipment.objects.filter(id=id)
-            if not shipment:
-                task = CreateShipmentData()
-                task.delay(id)
+        shipments = get_api_handler().get_all_shipments()
+        for id in list(map(lambda x: x['shipmentId'], shipments['shipments'])):
+            task = CreateShipmentData()
+            task.delay(id)
