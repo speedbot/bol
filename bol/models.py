@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 from django.utils import timezone
 
@@ -15,12 +17,18 @@ class Client(TimeStampMixin, models.Model):
     client_id = models.CharField(max_length=255, null=False)
     client_secret = models.CharField(max_length=255, null=False)
     expiry_date = models.DateTimeField(default=None)
+    auth_token = models.CharField(max_length=255, default='')
 
     def is_expired(self):
-        if self.expiry_date and timezone.now() < self.expiry_date:
+        if self.expiry_date and timezone.now() > self.expiry_date:
             return True
         else:
             return False
+
+    def update_auth_token(self, auth_token):
+        self.auth_token = auth_token
+        self.expiry_date = self.expiry_date + timedelta(minutes=5)
+        self.save()
 
     def __str__(self):
         return self.name
