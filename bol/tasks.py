@@ -1,3 +1,4 @@
+import ratelimit
 from billiard.exceptions import SoftTimeLimitExceeded
 from celery.schedules import crontab
 from django.apps import apps
@@ -5,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError, OperationalError
 
 from celery.task import PeriodicTask as CeleryPeriodicTask, Task as CeleryTask
+from ratelimit import RateLimitException
 
 from bol.utils import get_api_handler
 
@@ -78,8 +80,12 @@ class PeriodicTask(TaskBase, CeleryPeriodicTask):
 class CreateShipmentData(Task):
     def _run(self, shipmentId, *args, **kwargs):
         from bol.models import Transport, Customer, Shipment, ShipmentItem
-
-        data = get_api_handler().get_shipment(shipmentId)
+        try:
+            data = get_api_handler().get_shipment(shipmentId)
+        except RateLimitException:
+            self.retry(countdown=60)
+        if data is None:
+            return
         kwargs = data
         if 'transport' in data:
             transport_data = data.pop('transport')
@@ -105,7 +111,12 @@ class CreateShipmentData(Task):
 
 class TaskGetAllShipments(Task):
     def _run(self, *args, **kwargs):
-        shipments = get_api_handler().get_all_shipments()
+        try:
+            shipments = get_api_handler().get_all_shipments()
+        except RateLimitException:
+            self.retry(countdown=60)
+        if shipments is None:
+            return
         for id in list(map(lambda x: x['shipmentId'], shipments['shipments'])):
             task = CreateShipmentData()
             task.delay(id)
