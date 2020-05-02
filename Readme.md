@@ -1,0 +1,1 @@
+celery -A bol  worker --loglevel=info

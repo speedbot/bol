@@ -1,6 +1,6 @@
 import json
-import requests
 
+import requests
 from ratelimit import limits
 
 from .constants import BOL_LOGIN_URL, BOL_SHIPMENT_URL
