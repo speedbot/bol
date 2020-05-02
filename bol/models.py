@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 from django.utils import timezone
 
@@ -21,6 +23,10 @@ class Client(TimeStampMixin, models.Model):
             return True
         else:
             return False
+
+    def update_token_expiry(self):
+        self.expiry_date = self.expiry_date + timedelta(minutes=5)
+        self.save()
 
     def __str__(self):
         return self.name
