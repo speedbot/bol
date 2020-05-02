@@ -105,10 +105,7 @@ class CreateShipmentData(Task):
 
 class TaskGetAllShipments(Task):
     def _run(self, *args, **kwargs):
-        from bol.models import Shipment
         shipments = get_api_handler().get_all_shipments()
         for id in list(map(lambda x: x['shipmentId'], shipments['shipments'])):
-            shipment = Shipment.objects.filter(id=id)
-            if not shipment:
-                task = CreateShipmentData()
-                task.delay(id)
+            task = CreateShipmentData()
+            task.delay(id)
