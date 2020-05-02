@@ -84,8 +84,12 @@ class CreateShipmentData(Task):
         data = handler.get_shipment(shipmentId)
         kwargs = data
         if 'transport' in data:
-            transport = Transport.objects.create(**data.pop('transport'))
-            kwargs['transport'] = transport
+            transport_data = data.pop('transport')
+            if Transport.objects.filter(transportId=transport_data['transportId']):
+                Transport.objects.filter(transportId=transport_data['transportId']).update(**transport_data)
+            else:
+                transport = Transport.objects.create(**transport_data)
+                kwargs['transport'] = transport
         if 'customerDetails' in data:
             customer = Customer.objects.create(**data.pop('customerDetails'))
             kwargs['customerDetails'] = customer
@@ -93,9 +97,12 @@ class CreateShipmentData(Task):
         list = []
         for shipment in shipmentitems:
             list.append(ShipmentItem.objects.create(**shipment))
-        obj = Shipment.objects.create(**kwargs)
-        for item in list:
-            obj.shipmentItems.add(item)
+        if Shipment.objects.filter(shipmentId=kwargs['shipmentId']):
+            Shipment.objects.filter(shipmentId=kwargs['shipmentId']).update(**kwargs)
+        else:
+            obj = Shipment.objects.create(**kwargs)
+            for item in list:
+                obj.shipmentItems.add(item)
 
 
 class TaskGetAllShipments(Task):
@@ -104,7 +111,7 @@ class TaskGetAllShipments(Task):
         from bol.handler import APIHandler
         handler = APIHandler(client=Client.objects.first())
         shipments = handler.get_all_shipments()
-        for id in list(map(lambda x:x['shipmentId'], shipments['shipments'])):
+        for id in list(map(lambda x: x['shipmentId'], shipments['shipments'])):
             shipment = Shipment.objects.filter(id=id)
             if not shipment:
                 task = CreateShipmentData()
