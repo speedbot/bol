@@ -14,3 +14,9 @@ def clean_db():
     for model in models:
         for item in model.objects.filter():
             item.delete()
+
+
+def get_api_handler():
+    from bol.models import Client
+    from bol.handler import APIHandler
+    return APIHandler(Client.objects.first())
