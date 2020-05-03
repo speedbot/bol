@@ -44,7 +44,7 @@ class ShipmentItem(TimeStampMixin, models.Model):
     quantity = models.IntegerField(null=False)
     offerPrice = models.IntegerField(null=False)
     offerCondition = models.CharField(max_length=255, null=False)
-    offerReference  = models.CharField(max_length=255, null=True)
+    offerReference = models.CharField(max_length=255, null=True)
     fulfilmentMethod = models.CharField(max_length=255, null=False)
 
     def __str__(self):
