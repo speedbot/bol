@@ -91,14 +91,44 @@ class CreateShipmentData(Task):
                 obj.shipmentItems.add(item)
 
 
+class TaskGetFBRShipments(Task):
+    fullfillment_type = 'FBR'
+
+    def _run(self, *args, **kwargs):
+        task = TaskGetShipmentData()
+        task.delay(self.fullfillment_type, 1)
+
+
+class TaskGetFBBShipments(Task):
+    fullfillment_type = 'FBB'
+
+    def _run(self, *args, **kwargs):
+        task = TaskGetShipmentData()
+        task.delay(self.fullfillment_type, 1)
+
+
 class TaskGetAllShipments(Task):
     def _run(self, *args, **kwargs):
+        task1 = TaskGetFBBShipments()
+        task1.delay()
+        task2 = TaskGetFBRShipments()
+        task2.delay()
+
+
+class TaskGetShipmentData(Task):
+    def _run(self, fullfillment_method, page, *args, **kwargs):
+        params ={
+            'fulfilment-method': fullfillment_method,
+            'page': page,
+        }
         try:
-            shipments = get_api_handler().get_all_shipments()
+            shipments = get_api_handler().get_shipment_data(params)
         except RateLimitException:
-            self.retry(countdown=60)
-        if shipments is None:
+            self.retry(fullfillment_method=fullfillment_method, page=page, countdown=60)
+        if shipments is None or len(shipments)==0:
             return
         for id in list(map(lambda x: x['shipmentId'], shipments['shipments'])):
             task = CreateShipmentData()
             task.delay(id)
+        task = TaskGetShipmentData()
+        task.delay(fullfillment_method, page+1)
