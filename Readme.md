@@ -6,8 +6,8 @@
 
 `virtualenv -p python3 venv`
 
-### Activate the virtual environment
-
+### Activate the virtual environment and install deps
+`source venv/bin/activate`
 ``pip install -r reqs``
 
 ### Run migrations
