@@ -16,7 +16,7 @@ class Client(TimeStampMixin, models.Model):
     name = models.CharField(max_length=255, null=False)
     client_id = models.CharField(max_length=255, unique=True, null=False)
     client_secret = models.CharField(max_length=255, null=False)
-    expiry_date = models.DateTimeField(default=None)
+    expiry_date = models.DateTimeField(auto_now=True, null=True)
     auth_token = models.CharField(max_length=255, default='')
 
     def is_expired(self):

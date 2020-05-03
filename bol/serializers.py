@@ -6,7 +6,7 @@ from bol.models import Client, Customer, Shipment, ShipmentItem, Transport
 class ClientSerializer(ModelSerializer):
     class Meta:
         model = Client
-        fields = ('id', 'client_id', 'client_secret', 'expiry_date')
+        fields = ('id', 'client_id', 'client_secret')
 
 
 class TransportSerializer(ModelSerializer):
