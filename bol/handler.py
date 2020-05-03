@@ -31,10 +31,11 @@ class APIHandler:
         return {'Authorization': header, 'Accept': 'application/vnd.retailer.v3+json'}
 
     @limits(calls=7, period=60)
-    def get_all_shipments(self):
+    def get_shipment_data(self, params=None):
         response = requests.get(
             BOL_SHIPMENT_URL,
             headers=self.get_headers(),
+            params=params,
         )
         if response.status_code == 200:
             return json.loads(response.content.decode())
