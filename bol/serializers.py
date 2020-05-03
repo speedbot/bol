@@ -18,7 +18,7 @@ class TransportSerializer(ModelSerializer):
 class CustomerSerializer(ModelSerializer):
     class Meta:
         model = Customer
-        fields = ('id', 'salutationCode', 'zipCode', 'countryCode')
+        fields = ('id', 'email', 'salutationCode', 'zipCode', 'countryCode')
 
 
 class ShipmentItemSerializer(ModelSerializer):
@@ -36,6 +36,7 @@ class ShipmentItemSerializer(ModelSerializer):
             'offerPrice',
             'offerCondition',
             'fulfilmentMethod',
+            'offerReference',
         )
 
 
@@ -47,10 +48,12 @@ class ShipmentSerializer(ModelSerializer):
     class Meta:
         model = Shipment
         fields = (
+            'id',
             'shipmentId',
             'shipmentDate',
             'pickUpPoint',
             'shipmentItems',
             'transport',
             'customerDetails',
+            'shipmentReference',
         )

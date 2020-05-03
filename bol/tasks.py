@@ -1,6 +1,4 @@
 from billiard.exceptions import SoftTimeLimitExceeded
-from django.apps import apps
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError, OperationalError
 from ratelimit import RateLimitException
 
@@ -42,23 +40,6 @@ class Task(TaskBase, CeleryTask):
     Base task for tasks that hit up the database.
     """
     pass
-
-
-class RefetchModelTask(Task):
-    """
-    Task that takes app label, model name and an id.
-    """
-    def get_instance(self, app_label, model_name, id):
-        model = apps.get_model(app_label, model_name)
-        return model.objects.all().get(pk=id)
-
-    def run(self, app_label, model_name, id, *args, **kwargs):
-        try:
-            instance = self.get_instance(app_label, model_name, id)
-        except (ObjectDoesNotExist, OperationalError, DatabaseError) as exc:
-            raise self.retry(exc=exc)
-
-        return super(RefetchModelTask, self).run(instance, *args, **kwargs)
 
 
 class PeriodicTask(TaskBase, CeleryPeriodicTask):
@@ -110,14 +91,44 @@ class CreateShipmentData(Task):
                 obj.shipmentItems.add(item)
 
 
+class TaskGetFBRShipments(Task):
+    fullfillment_type = 'FBR'
+
+    def _run(self, *args, **kwargs):
+        task = TaskGetShipmentData()
+        task.delay(self.fullfillment_type, 1)
+
+
+class TaskGetFBBShipments(Task):
+    fullfillment_type = 'FBB'
+
+    def _run(self, *args, **kwargs):
+        task = TaskGetShipmentData()
+        task.delay(self.fullfillment_type, 1)
+
+
 class TaskGetAllShipments(Task):
     def _run(self, *args, **kwargs):
+        task1 = TaskGetFBBShipments()
+        task1.delay()
+        task2 = TaskGetFBRShipments()
+        task2.delay()
+
+
+class TaskGetShipmentData(Task):
+    def _run(self, fullfillment_method, page, *args, **kwargs):
+        params ={
+            'fulfilment-method': fullfillment_method,
+            'page': page,
+        }
         try:
-            shipments = get_api_handler().get_all_shipments()
+            shipments = get_api_handler().get_shipment_data(params)
         except RateLimitException:
-            self.retry(countdown=60)
-        if shipments is None:
+            self.retry(fullfillment_method=fullfillment_method, page=page, countdown=60)
+        if shipments is None or len(shipments)==0:
             return
         for id in list(map(lambda x: x['shipmentId'], shipments['shipments'])):
             task = CreateShipmentData()
             task.delay(id)
+        task = TaskGetShipmentData()
+        task.delay(fullfillment_method, page+1)
