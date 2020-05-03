@@ -93,29 +93,34 @@ class TaskGetFBBShipments(Task):
         task.delay(self.fullfillment_type, 1)
 
 
-class TaskGetAllShipments(Task):
-    def _run(self, *args, **kwargs):
-        task1 = TaskGetFBBShipments()
-        task1.delay()
-        task2 = TaskGetFBRShipments()
-        task2.delay()
-
-
 # Task to get shipment data and recursively call itself to fetch data of consequent pages
 class TaskGetShipmentData(Task):
-    def _run(self, fullfillment_method, page, *args, **kwargs):
-        params = {
-            'fulfilment-method': fullfillment_method,
-            'page': page,
-        }
-        try:
-            shipments = get_api_handler().get_shipment_data(params)
-        except RateLimitException:
-            self.retry(fullfillment_method=fullfillment_method, page=page, countdown=60)
+    def _run(self, page, *args, **kwargs):
+        final_result = []
+        methods = ['FBR', 'FBB']
+
+        for fullfillment_method in methods:
+            params = {
+                'fulfilment-method': fullfillment_method,
+                'page': page,
+            }
+            try:
+                shipments = get_api_handler().get_shipment_data(params)
+                if shipments:
+                    for item in shipments['shipments']:
+                        final_result.append(item)
+            except RateLimitException:
+                self.retry(page=page, countdown=60)
+
         if shipments is None or len(shipments) == 0:
             return
-        for id in list(map(lambda x: x['shipmentId'], shipments['shipments'])):
+        count = 0
+        for id in list(map(lambda x: x['shipmentId'], final_result)):
             task = CreateShipmentData()
-            task.delay(id)
+            task.apply_async(args=[id], countdown=count*5)
+            count+=1
+
         task = TaskGetShipmentData()
-        task.delay(fullfillment_method, page+1)
+        task.apply_async(args=[page+1], countdown=len(final_result)*5)
+# For listing API rate limit is 14 calls per minute which translates to an API Call every % secs
+# The next page details should be fetched after (no of items in current page *5) seconds (Typically 5 * 50 = 250 Seconds)
