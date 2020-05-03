@@ -1,14 +1,13 @@
-import ratelimit
 from billiard.exceptions import SoftTimeLimitExceeded
-from celery.schedules import crontab
 from django.apps import apps
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError, OperationalError
-
-from celery.task import PeriodicTask as CeleryPeriodicTask, Task as CeleryTask
 from ratelimit import RateLimitException
 
 from bol.utils import get_api_handler
+from celery.schedules import crontab
+from celery.task import PeriodicTask as CeleryPeriodicTask
+from celery.task import Task as CeleryTask
 
 from .utils import get_task_logger
 
@@ -90,7 +89,9 @@ class CreateShipmentData(Task):
         if 'transport' in data:
             transport_data = data.pop('transport')
             if Transport.objects.filter(transportId=transport_data['transportId']):
-                Transport.objects.filter(transportId=transport_data['transportId']).update(**transport_data)
+                Transport.objects.filter(
+                    transportId=transport_data['transportId'],
+                ).update(**transport_data)
             else:
                 transport = Transport.objects.create(**transport_data)
                 kwargs['transport'] = transport

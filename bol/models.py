@@ -14,7 +14,7 @@ class TimeStampMixin(models.Model):
 
 class Client(TimeStampMixin, models.Model):
     name = models.CharField(max_length=255, null=False)
-    client_id = models.CharField(max_length=255,unique=True, null=False)
+    client_id = models.CharField(max_length=255, unique=True, null=False)
     client_secret = models.CharField(max_length=255, null=False)
     expiry_date = models.DateTimeField(default=None)
     auth_token = models.CharField(max_length=255, default='')
@@ -39,8 +39,8 @@ class ShipmentItem(TimeStampMixin, models.Model):
     orderId = models.CharField(max_length=255, null=False)
     orderDate = models.DateTimeField(auto_now=True)
     latestDeliveryDate = models.DateTimeField(auto_now=True)
-    ean =  models.CharField(max_length=255, null=False)
-    title =  models.CharField(max_length=255, null=False)
+    ean = models.CharField(max_length=255, null=False)
+    title = models.CharField(max_length=255, null=False)
     quantity = models.IntegerField(null=False)
     offerPrice = models.IntegerField(null=False)
     offerCondition = models.CharField(max_length=255, null=False)
@@ -74,7 +74,7 @@ class Shipment(TimeStampMixin, models.Model):
     pickUpPoint = models.BooleanField(default=True)
     shipmentItems = models.ManyToManyField(ShipmentItem, related_name='items')
     transport = models.ForeignKey(Transport, on_delete=models.CASCADE)
-    customerDetails  = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    customerDetails = models.ForeignKey(Customer, on_delete=models.CASCADE)
 
     def __str__(self):
         return 'Shipment {}'.format(self.shipmentId)

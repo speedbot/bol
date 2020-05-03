@@ -5,7 +5,6 @@ from django.conf import settings
 
 from celery import Celery
 
-
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bol.settings')
 
 app = Celery('app', broker=settings.CELERY_BROKER_URL)
