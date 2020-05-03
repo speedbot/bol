@@ -3,8 +3,6 @@ from django.db import DatabaseError, OperationalError
 from ratelimit import RateLimitException
 
 from bol.utils import get_api_handler
-from celery.schedules import crontab
-from celery.task import PeriodicTask as CeleryPeriodicTask
 from celery.task import Task as CeleryTask
 
 from .utils import get_task_logger
@@ -40,21 +38,6 @@ class Task(TaskBase, CeleryTask):
     Base task for tasks that hit up the database.
     """
     pass
-
-
-class PeriodicTask(TaskBase, CeleryPeriodicTask):
-    """
-    Base periodic task for tasks that hit up the database.
-    """
-    run_every = crontab(
-        minute='0',
-        hour='0',
-        day_of_month='1',
-        month_of_year='1',
-    )
-
-    def _run(self, *args, **kwargs):
-        pass
 
 
 class CreateShipmentData(Task):
