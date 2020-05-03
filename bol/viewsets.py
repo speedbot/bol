@@ -4,7 +4,7 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 from bol.models import Client, Shipment
 from bol.serializers import ClientSerializer, ShipmentSerializer
-from bol.tasks import TaskGetAllShipments
+from bol.tasks import TaskGetShipmentData
 
 
 class ClientViewSet(ModelViewSet):
@@ -18,6 +18,6 @@ class ShipmentViewset(ReadOnlyModelViewSet):
 
     @action(methods=['get'], detail=False)
     def initial_sync(self, request):
-        task = TaskGetAllShipments()
-        task.delay()
+        task = TaskGetShipmentData()
+        task.delay(1)
         return Response({'status': 'Initial Data Sync Started'})
