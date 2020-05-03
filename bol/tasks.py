@@ -116,7 +116,7 @@ class TaskGetShipmentData(Task):
             return
         for id in list(map(lambda x: x['shipmentId'], shipments['shipments'])):
             task = CreateShipmentData()
-            task.apply_async(args=[id], countdown=6*page)
+            task.apply_async(args=[id], countdown=12*page)
 
         task = TaskGetShipmentData()
         task.delay(fullfillment_method, page+1)
