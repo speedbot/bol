@@ -44,7 +44,7 @@ class APIHandler:
             response.raise_for_status()
             return None
 
-    @limits(calls=14, period=60)
+    @limits(calls=10, period=60)
     def get_shipment(self, shipmentId):
         response = requests.get(
             '{}{}/'.format(BOL_SHIPMENT_URL, shipmentId),

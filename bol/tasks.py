@@ -39,7 +39,7 @@ class Task(TaskBase, CeleryTask):
     """
     pass
 
-
+# Task to get shipment info using the shipmentId param
 class CreateShipmentData(Task):
     def _run(self, shipmentId, *args, **kwargs):
         from bol.models import Transport, Customer, Shipment, ShipmentItem
@@ -74,6 +74,7 @@ class CreateShipmentData(Task):
                 obj.shipmentItems.add(item)
 
 
+# Get All items under FBR category
 class TaskGetFBRShipments(Task):
     fullfillment_type = 'FBR'
 
@@ -82,6 +83,7 @@ class TaskGetFBRShipments(Task):
         task.delay(self.fullfillment_type, 1)
 
 
+# Get All items under FBB category
 class TaskGetFBBShipments(Task):
     fullfillment_type = 'FBB'
 
@@ -98,6 +100,7 @@ class TaskGetAllShipments(Task):
         task2.delay()
 
 
+# Task to get shipment data and recursively call itself to fetch data of consequent pages
 class TaskGetShipmentData(Task):
     def _run(self, fullfillment_method, page, *args, **kwargs):
         params ={
