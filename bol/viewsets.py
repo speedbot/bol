@@ -1,9 +1,12 @@
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
+from rest_framework.decorators import action
 
 from bol.models import Client, Customer, Shipment, ShipmentItem, Transport
 from bol.serializers import (ClientSerializer, CustomerSerializer,
                              ShipmentItemSerializer, ShipmentSerializer,
                              TransportSerializer)
+from bol.tasks import TaskGetAllShipments
 
 
 class ClientViewSet(ModelViewSet):
@@ -11,21 +14,12 @@ class ClientViewSet(ModelViewSet):
     serializer_class = ClientSerializer
 
 
-class TransportViewSet(ReadOnlyModelViewSet):
-    queryset = Transport.objects.filter()
-    serializer_class = TransportSerializer
-
-
-class CustomerViewSet(ReadOnlyModelViewSet):
-    queryset = Customer.objects.filter()
-    serializer_class = CustomerSerializer
-
-
-class ShipmentItemViewSet(ReadOnlyModelViewSet):
-    queryset = ShipmentItem.objects.filter()
-    serializer_class = ShipmentItemSerializer
-
-
 class ShipmentViewset(ReadOnlyModelViewSet):
     queryset = Shipment.objects.filter()
     serializer_class = ShipmentSerializer
+
+    @action(methods=['get'], detail=False)
+    def initial_sync(self, request, pk=None):
+        task = TaskGetAllShipments()
+        task.delay()
+        return Response({'status': 'Initial Data Sync Started'})
