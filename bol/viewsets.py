@@ -1,10 +1,9 @@
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from rest_framework.decorators import action
 
 from bol.models import Client, Shipment
 from bol.serializers import ClientSerializer, ShipmentSerializer
-
 from bol.tasks import TaskGetAllShipments
 
 

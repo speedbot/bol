@@ -39,6 +39,7 @@ class Task(TaskBase, CeleryTask):
     """
     pass
 
+
 # Task to get shipment info using the shipmentId param
 class CreateShipmentData(Task):
     def _run(self, shipmentId, *args, **kwargs):
@@ -103,7 +104,7 @@ class TaskGetAllShipments(Task):
 # Task to get shipment data and recursively call itself to fetch data of consequent pages
 class TaskGetShipmentData(Task):
     def _run(self, fullfillment_method, page, *args, **kwargs):
-        params ={
+        params = {
             'fulfilment-method': fullfillment_method,
             'page': page,
         }
@@ -111,7 +112,7 @@ class TaskGetShipmentData(Task):
             shipments = get_api_handler().get_shipment_data(params)
         except RateLimitException:
             self.retry(fullfillment_method=fullfillment_method, page=page, countdown=60)
-        if shipments is None or len(shipments)==0:
+        if shipments is None or len(shipments) == 0:
             return
         for id in list(map(lambda x: x['shipmentId'], shipments['shipments'])):
             task = CreateShipmentData()
