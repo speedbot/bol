@@ -1,6 +1,4 @@
 from billiard.exceptions import SoftTimeLimitExceeded
-from django.apps import apps
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import DatabaseError, OperationalError
 from ratelimit import RateLimitException
 
@@ -42,23 +40,6 @@ class Task(TaskBase, CeleryTask):
     Base task for tasks that hit up the database.
     """
     pass
-
-
-class RefetchModelTask(Task):
-    """
-    Task that takes app label, model name and an id.
-    """
-    def get_instance(self, app_label, model_name, id):
-        model = apps.get_model(app_label, model_name)
-        return model.objects.all().get(pk=id)
-
-    def run(self, app_label, model_name, id, *args, **kwargs):
-        try:
-            instance = self.get_instance(app_label, model_name, id)
-        except (ObjectDoesNotExist, OperationalError, DatabaseError) as exc:
-            raise self.retry(exc=exc)
-
-        return super(RefetchModelTask, self).run(instance, *args, **kwargs)
 
 
 class PeriodicTask(TaskBase, CeleryPeriodicTask):
