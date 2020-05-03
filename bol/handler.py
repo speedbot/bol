@@ -24,6 +24,7 @@ class APIHandler:
             self.client.update_auth_token(auth_token)
             return auth_token
         else:
+            response.raise_for_status()
             return None
 
     def get_headers(self):
@@ -40,6 +41,7 @@ class APIHandler:
         if response.status_code == 200:
             return json.loads(response.content.decode())
         else:
+            response.raise_for_status()
             return None
 
     @limits(calls=14, period=60)
@@ -51,4 +53,5 @@ class APIHandler:
         if response.status_code == 200:
             return json.loads(response.content.decode())
         else:
+            response.raise_for_status()
             return None
