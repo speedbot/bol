@@ -75,23 +75,6 @@ class CreateShipmentData(Task):
                 obj.shipmentItems.add(item)
 
 
-# Get All items under FBR category
-class TaskGetFBRShipments(Task):
-    fullfillment_type = 'FBR'
-
-    def _run(self, *args, **kwargs):
-        task = TaskGetShipmentData()
-        task.delay(self.fullfillment_type, 1)
-
-
-# Get All items under FBB category
-class TaskGetFBBShipments(Task):
-    fullfillment_type = 'FBB'
-
-    def _run(self, *args, **kwargs):
-        task = TaskGetShipmentData()
-        task.delay(self.fullfillment_type, 1)
-
 
 # Task to get shipment data and recursively call itself to fetch data of consequent pages
 class TaskGetShipmentData(Task):
