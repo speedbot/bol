@@ -44,6 +44,7 @@ class ShipmentItem(TimeStampMixin, models.Model):
     quantity = models.IntegerField(null=False)
     offerPrice = models.IntegerField(null=False)
     offerCondition = models.CharField(max_length=255, null=False)
+    offerReference  = models.CharField(max_length=255, null=True)
     fulfilmentMethod = models.CharField(max_length=255, null=False)
 
     def __str__(self):
@@ -60,6 +61,7 @@ class Transport(TimeStampMixin, models.Model):
 
 
 class Customer(TimeStampMixin, models.Model):
+    email = models.EmailField(null=True)
     salutationCode = models.CharField(max_length=255, null=False)
     zipCode = models.CharField(max_length=255, null=False)
     countryCode = models.CharField(max_length=255, null=False)
@@ -75,6 +77,7 @@ class Shipment(TimeStampMixin, models.Model):
     shipmentItems = models.ManyToManyField(ShipmentItem, related_name='items')
     transport = models.ForeignKey(Transport, on_delete=models.CASCADE)
     customerDetails = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    shipmentReference = models.CharField(default=None, max_length=255, null=True)
 
     def __str__(self):
         return 'Shipment {}'.format(self.shipmentId)
