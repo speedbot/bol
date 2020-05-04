@@ -1,3 +1,5 @@
+import logging
+
 from billiard.exceptions import SoftTimeLimitExceeded
 from django.db import DatabaseError, OperationalError
 from ratelimit import RateLimitException
@@ -5,6 +7,7 @@ from ratelimit import RateLimitException
 from bol.utils import get_api_handler
 from celery.task import Task as CeleryTask
 
+from .models import Client
 from .utils import get_task_logger
 
 task_logger = get_task_logger()
@@ -42,7 +45,7 @@ class Task(TaskBase, CeleryTask):
 
 # Task to get shipment info using the shipmentId param
 class CreateShipmentData(Task):
-    def _run(self, shipmentId, *args, **kwargs):
+    def _run(self, shipmentId, client_id, *args, **kwargs):
         from bol.models import Transport, Customer, Shipment, ShipmentItem
         try:
             data = get_api_handler().get_shipment(shipmentId)
@@ -71,6 +74,8 @@ class CreateShipmentData(Task):
             Shipment.objects.filter(shipmentId=kwargs['shipmentId']).update(**kwargs)
         else:
             obj = Shipment.objects.create(**kwargs)
+            obj.client = Client.objects.filter(id=client_id).first()
+            obj.save()
             for item in list:
                 obj.shipmentItems.add(item)
 
@@ -78,7 +83,7 @@ class CreateShipmentData(Task):
 
 # Task to get shipment data and recursively call itself to fetch data of consequent pages
 class TaskGetShipmentData(Task):
-    def _run(self, page, *args, **kwargs):
+    def _run(self, page, client_id, *args, **kwargs):
         final_result = []
         methods = ['FBR', 'FBB']
 
@@ -93,17 +98,17 @@ class TaskGetShipmentData(Task):
                     for item in shipments['shipments']:
                         final_result.append(item)
             except RateLimitException:
-                self.retry(page=page, countdown=60)
+                self.retry(page=page, client_id=client_id, countdown=60)
 
         if shipments is None or len(shipments) == 0:
             return
         count = 0
         for id in list(map(lambda x: x['shipmentId'], final_result)):
             task = CreateShipmentData()
-            task.apply_async(args=[id], countdown=count*5)
+            task.apply_async(args=[id, client_id], countdown=count*5)
             count+=1
 
         task = TaskGetShipmentData()
-        task.apply_async(args=[page+1], countdown=len(final_result)*5)
+        task.apply_async(args=[page+1, client_id], countdown=len(final_result)*5)
 # For listing API rate limit is 14 calls per minute which translates to an API Call every % secs
 # The next page details should be fetched after (no of items in current page *5) seconds (Typically 5 * 50 = 250 Seconds)
