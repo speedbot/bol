@@ -11,13 +11,23 @@ class ClientViewSet(ModelViewSet):
     queryset = Client.objects.filter()
     serializer_class = ClientSerializer
 
+    @action(methods=['get'], detail=True)
+    def shipment(self, request, pk):
+        queryset = Shipment.objects.filter(client_id__exact=pk)
+        serializer = ShipmentSerializer(queryset, many=True)
+        if queryset.count() > 0:
+            return Response(data=serializer.data)
+        else:
+            return Response({})
+
+    @action(methods=['get'], detail=True)
+    def initial_sync(self, request, pk):
+        task = TaskGetShipmentData()
+        task.delay(1, pk)
+        return Response({'status': 'Initial Data Sync Started'})
+
+
 
 class ShipmentViewset(ReadOnlyModelViewSet):
     queryset = Shipment.objects.filter()
     serializer_class = ShipmentSerializer
-
-    @action(methods=['get'], detail=False)
-    def initial_sync(self, request):
-        task = TaskGetShipmentData()
-        task.delay(1)
-        return Response({'status': 'Initial Data Sync Started'})
