@@ -71,6 +71,7 @@ class Customer(TimeStampMixin, models.Model):
 
 
 class Shipment(TimeStampMixin, models.Model):
+    client = models.ForeignKey(Client, default=None, null=True, on_delete=models.CASCADE, related_name='client')
     shipmentId = models.IntegerField(unique=True, null=False, db_index=True)
     shipmentDate = models.DateTimeField(null=False)
     pickUpPoint = models.BooleanField(default=True)

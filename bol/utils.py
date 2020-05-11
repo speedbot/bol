@@ -16,7 +16,10 @@ def clean_db():
 
 
 # util method to get access to an API handler instance to access BOL API
-def get_api_handler():
+def get_api_handler(client_id=None):
     from bol.models import Client
     from bol.handler import APIHandler
-    return APIHandler(Client.objects.first())
+    if client_id:
+        return APIHandler(Client.objects.get(client_id))
+    else:
+        return APIHandler(Client.objects.first())
